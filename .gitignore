@@ -1,0 +1,53 @@
+## User-specific files
+*.rsuser
+*.suo
+*.user
+*.userviews
+*.sln.docstates
+
+## User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
+
+## Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Re]leasePublic/
+x64/
+x86/
+build/
+bld/
+Bin/
+Obj/
+bin/
+obj/
+
+## Visual Studio Visual State File
+*.cscfg
+*.cache
+*.spec
+
+## MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+## NUnit
+*.visualstate
+
+## Visual Studio Studio 2015/2017/2019/2022 cache directories
+.vs/
+*/*.dbmdl
+*/*.jfm
+
+## SQL Server files (LocalDB packages)
+*.mdf
+*.ldf
+*.ndf
+
+## Packages saving directories
+*.nuget.exe
+packages/
+
+#ASP.NET Core
+appsettings.json
+appsettings.*.json
