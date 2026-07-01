@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace ClinicManagement.API.Controllers
@@ -33,58 +34,51 @@ namespace ClinicManagement.API.Controllers
             _roleManager = roleManager;
         }
         [HttpGet("get-all-roles")]
-        public async Task<IActionResult> GetAllRoles()
+        public async Task<IActionResult> GetRoles()
         {
-            var roles = _roleManager.Roles.Select(r => r.Name).ToList();
+            var roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync();
             return Ok(roles);
         }
         [HttpPost("add-role")]
-        public async Task<IActionResult> AddRole([FromBody] CreateRoleDto model)
+        public async Task<IActionResult> AddRle(CreateRoleDto model)
         {
-            if (string.IsNullOrEmpty(model.RoleName))
-                return BadRequest("اسم الدور مطلوب");
+            if (string.IsNullOrWhiteSpace(model.RoleName))
+                return BadRequest("Role name is required.");
 
-            var roleExists = await _roleManager.RoleExistsAsync(model.RoleName);
-            if (roleExists)
-                return BadRequest("هذا الدور موجود مسبقاً");
+            if (await _roleManager.RoleExistsAsync(model.RoleName))
+                return BadRequest("This role already exists in the system.");
 
-            var result = await _roleManager.CreateAsync(new IdentityRole(model.RoleName));
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
-            return Ok($"بنجاح {model.RoleName}تم انشاء الدور ");
+            await _roleManager.CreateAsync(new IdentityRole(model.RoleName));
+            return Created();
         }
         [HttpPost("assign-role-to-user")]
-        public async Task<IActionResult> AssignRoleToUser([FromBody] AssignRoleDto model)
+        public async Task<IActionResult> AssignRoleToUser(AssignRoleDto model)
         {
             var user = await _userManager.FindByIdAsync(model.UserId);
-            if (user == null)
-                return NotFound("المستخدم غير موجود");
+            if (user is null)
+                return NotFound("The spcified user was not found.");
             var roleExists = await _roleManager.RoleExistsAsync(model.RoleName);
             if (!roleExists)
-                return BadRequest("الدور المكتوب غير موجود بالنظام , يجب انشاؤه اولاً");
+                return BadRequest("The specified role does not exist in the system. Please create the role first.");
 
-            var result = await _userManager.AddToRoleAsync(user,model.RoleName);
+            var result = await _userManager.AddToRoleAsync(user, model.RoleName);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
-
-            return Ok($"بنجاح {model.RoleName} تم منح المستخدم دور ");
+            return NoContent();
         }
         [HttpDelete("delete-role")]
         public async Task<IActionResult> DeleteRole([FromBody] string roleName)
         {
             var role = await _roleManager.FindByNameAsync(roleName);
-            if (role == null)
-                return NotFound("هذا الدور غير موجود بالاصل ليتم حذفه");
-
-            if (roleName.ToLower() == "admin" || roleName.ToLower() == "patient")
-                return BadRequest("لا يمكن حذف الادوار الاساسية");
+            if (role is null)
+                return NotFound("The specified role was not found.");
+            if (roleName.ToLower() == "admin")
+                return BadRequest("The 'Admin' role is a core system role and cannot be deleted.");
 
             var result = await _roleManager.DeleteAsync(role);
-            if(!result.Succeeded)
+            if (!result.Succeeded)
                 return BadRequest(result.Errors);
-
-            return Ok($"نائياً من النظام {roleName} تم حذف الدور ");
+            return NoContent();
         }
     }
 }
